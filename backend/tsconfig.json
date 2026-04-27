@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "esnext",
+    "strict": true,
+    "esModuleInterop": true,
+    "ignoreDeprecations": "6.0",
+    "typeRoots": ["./node_modules/@types", "./src/@types"]
+    // "baseUrl": ".",
+    // "paths": {
+    //   "@generated/*": ["src/generated/*"]
+    // }
+  }
+}
