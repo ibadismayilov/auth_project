@@ -9,13 +9,14 @@ import {
   verifyRefreshToken,
 } from "../utils/jwt.util";
 import { cookieOptions } from "../utils/cookie.util";
+import { hashToken } from "../utils/token.util";
 
 export const register = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { username, email, password } = req.body;
 
-    if (!username || !email || !password)
-      return createAppError("Please enter your email and password.", 400);
+    if (!email || !password)
+      return next(createAppError("Please enter your email and password.", 400));
 
     const existing_user = await prisma.user.findUnique({
       where: { email },
@@ -44,97 +45,127 @@ export const register = catchAsync(
   },
 );
 
-export const login = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { email, password } = req.body;
+export const login = catchAsync(async (req, res, next) => {
+  const { email, password } = req.body;
 
-    if (!email || !password)
-      return createAppError("Please enter email and password", 400);
+  if (!email || !password)
+    return next(createAppError("Please enter email and password", 400));
 
-    const user = await prisma.user.findUnique({
-      where: { email },
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user || !(await comparePassword(password, user.password))) {
+    return next(createAppError("Email or password is incorrect", 401));
+  }
+
+  if (!user.isVerified) {
+    return res.status(403).json({
+      status: "fail",
+      message: "Please confirm your email first.",
+    });
+  }
+
+  await prisma.refreshToken.deleteMany({
+    where: { userId: user.id },
+  });
+
+  const access_token = signAccessToken(user.id);
+  const refresh_token = signRefreshToken(user.id);
+
+  const hashed_refresh_token = hashToken(refresh_token);
+
+  await prisma.refreshToken.create({
+    data: {
+      token: hashed_refresh_token,
+      userId: user.id,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      isRevoked: false,
+    },
+  });
+
+  res.cookie("refreshToken", refresh_token, cookieOptions);
+
+  res.status(200).json({
+    status: "success",
+    access_token,
+  });
+});
+
+export const refreshToken = catchAsync(async (req, res, next) => {
+  const token = req.cookies.refreshToken;
+
+  if (!token) return next(createAppError("Refresh not found", 401));
+
+  const verify = verifyRefreshToken(token);
+
+  const hashed_token = hashToken(token);
+
+  const storedToken = await prisma.refreshToken.findFirst({
+    where: {
+      token: hashed_token,
+      userId: verify.id,
+      expiresAt: { gt: new Date() },
+      isRevoked: false,
+    },
+  });
+
+  if (!storedToken) {
+    await prisma.refreshToken.updateMany({
+      where: { userId: verify.id },
+      data: { isRevoked: true },
     });
 
-    if (!user || !(await comparePassword(password, user.password))) {
-      return next(createAppError("The email or password is incorrec", 401));
-    }
+    res.clearCookie("refreshToken");
 
-    if (!user.isVerified) {
-      return res.status(403).json({
-        status: "fail",
-        message: "Please confirm your email address first.",
-      });
-    }
+    return next(
+      createAppError("Token reuse detected. All sessions revoked.", 401),
+    );
+  }
 
-    await prisma.refreshToken.deleteMany({ where: { userId: user.id } });
+  const user = await prisma.user.findUnique({
+    where: { id: verify.id },
+  });
 
-    const access_token = signAccessToken(user.id);
-    const refresh_token = signRefreshToken(user.id);
+  if (!user) return next(createAppError("User does not exist", 401));
 
-    await prisma.refreshToken.create({
-      data: {
-        token: refresh_token,
-        userId: user.id,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      },
-    });
+  await prisma.refreshToken.update({
+    where: { id: storedToken.id },
+    data: {
+      isRevoked: true,
+    },
+  });
 
-    res.cookie("refreshToken", refresh_token, cookieOptions);
+  const new_refresh_token = signRefreshToken(user.id);
+  const hashed_new_token = hashToken(new_refresh_token);
 
-    res.status(200).json({
-      status: "success",
-      access_token,
-      data: {
-        user: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-        },
-      },
-    });
-  },
-);
+  await prisma.refreshToken.create({
+    data: {
+      token: hashed_new_token,
+      userId: user.id,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      isRevoked: false,
+    },
+  });
 
-export const refreshToken = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const token = req.cookies.refreshToken;
+  const new_access_token = signAccessToken(user.id);
 
-    if (!token) return next(createAppError("Refresh not found", 401));
+  res.cookie("refreshToken", new_refresh_token, cookieOptions);
 
-    const verify = verifyRefreshToken(token);
+  res.status(200).json({
+    status: "success",
+    accessToken: new_access_token,
+  });
+});
 
-    const storedToken = await prisma.refreshToken.findFirst({
-      where: {
-        token: token,
-        userId: verify.id,
-        expiresAt: { gt: new Date() },
-      },
-    });
-
-    if (!storedToken)
-      return next(createAppError("The session is invalid", 401));
-
-    const user = await prisma.user.findUnique({
-      where: { id: verify.id },
-    });
-
-    if (!user) return next(createAppError("User does not exist", 401));
-
-    const new_access_token = signAccessToken(user.id);
-
-    res.status(200).json({
-      status: "success",
-      accessToken: new_access_token,
-    });
-  },
-);
-
-export const logout = catchAsync(async (req: Request, res: Response) => {
+export const logout = catchAsync(async (req, res) => {
   const token = req.cookies.refreshToken;
 
   if (token) {
+    const hased_token = hashToken(token);
+
     await prisma.refreshToken.deleteMany({
-      where: { token: token },
+      where: { token: hased_token },
     });
   }
 
@@ -144,6 +175,6 @@ export const logout = catchAsync(async (req: Request, res: Response) => {
 
   res.status(200).json({
     status: "success",
-    message: "Successfully performed.",
+    message: "Logged out successfully",
   });
 });

@@ -14,7 +14,7 @@ enum Role {
 
 model User {
   id                  String    @id @default(ulid())
-  username            String
+  username            String?
   email               String    @unique
   password            String
   role                Role      @default(USER)
@@ -32,11 +32,13 @@ model RefreshToken {
   expiresAt DateTime
   createdAt DateTime @default(now())
 
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   userAgent String?
   ipAddress String?
+
+  isRevoked Boolean @default(false)
 
   @@index([userId])
 }
