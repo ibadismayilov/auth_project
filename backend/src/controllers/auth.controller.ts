@@ -8,6 +8,7 @@ import {
   signRefreshToken,
   verifyRefreshToken,
 } from "../utils/jwt.util";
+import { cookieOptions } from "../utils/cookie.util";
 
 export const register = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -78,11 +79,7 @@ export const login = catchAsync(
       },
     });
 
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie("refreshToken", refresh_token, cookieOptions);
 
     res.status(200).json({
       status: "success",
@@ -141,10 +138,9 @@ export const logout = catchAsync(async (req: Request, res: Response) => {
     });
   }
 
-  res.clearCookie("refreshToken", {
-    httpOnly: true,
-    sameSite: "strict",
-  });
+  const { maxAge, ...clearOption } = cookieOptions;
+
+  res.clearCookie("refreshToken", clearOption);
 
   res.status(200).json({
     status: "success",
