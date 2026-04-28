@@ -22,4 +22,21 @@ model User {
   verificationCode    String?
   verificationExpires DateTime?
   createdAt           DateTime  @default(now())
+
+  refreshToken RefreshToken[]
+}
+
+model RefreshToken {
+  id        String   @id @default(ulid())
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  userAgent String?
+  ipAddress String?
+
+  @@index([userId])
 }
