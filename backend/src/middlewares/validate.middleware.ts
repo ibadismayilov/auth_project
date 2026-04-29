@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { z } from "zod/v3";
+import { z } from "zod";
 
 type MiddlewareFunction = (
   req: Request,
@@ -19,7 +19,7 @@ const validateInput = (schema: z.AnyZodObject): MiddlewareFunction => {
       return res.status(400).json({
         status: "error",
         message: "Validation failed",
-        errors: result.error.errors.map((err: any) => ({
+        errors: result.error.issues.map((err: any) => ({
           path: err.path.join("."),
           message: err.message,
           code: err.code,

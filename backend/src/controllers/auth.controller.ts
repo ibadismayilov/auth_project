@@ -11,39 +11,37 @@ import {
 import { cookieOptions } from "../utils/cookie.util";
 import { hashToken } from "../utils/token.util";
 
-export const register = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { username, email, password } = req.body;
+export const register = catchAsync(async (req, res, next) => {
+  const { username, email, password } = req.body;
 
-    if (!email || !password)
-      return next(createAppError("Please enter your email and password.", 400));
+  if (!email || !password)
+    return next(createAppError("Please enter your email and password.", 400));
 
-    const existing_user = await prisma.user.findUnique({
-      where: { email },
-    });
+  const existing_user = await prisma.user.findUnique({
+    where: { email },
+  });
 
-    if (existing_user) return createAppError("This user already exists.", 400);
+  if (existing_user) return createAppError("This user already exists.", 400);
 
-    const hash_password = await hashPassword(password);
+  const hash_password = await hashPassword(password);
 
-    const create_user = await prisma.user.create({
-      data: {
-        username,
-        email,
-        password: hash_password,
-      },
-      omit: { password: true },
-    });
+  const create_user = await prisma.user.create({
+    data: {
+      username,
+      email,
+      password: hash_password,
+    },
+    omit: { password: true },
+  });
 
-    return res.status(201).json({
-      status: "success",
-      message: "Registration completed successfully",
-      data: {
-        create_user,
-      },
-    });
-  },
-);
+  return res.status(201).json({
+    status: "success",
+    message: "Registration completed successfully",
+    data: {
+      create_user,
+    },
+  });
+});
 
 export const login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
@@ -93,7 +91,7 @@ export const login = catchAsync(async (req, res, next) => {
 });
 
 export const refreshToken = catchAsync(async (req, res, next) => {
-  const token = req.cookies.refreshToken;
+  const token = req.signedCookies.refreshToken;
 
   if (!token) return next(createAppError("Refresh not found", 401));
 
@@ -159,7 +157,7 @@ export const refreshToken = catchAsync(async (req, res, next) => {
 });
 
 export const logout = catchAsync(async (req, res) => {
-  const token = req.cookies.refreshToken;
+  const token = req.signedCookies.refreshToken;
 
   if (token) {
     const hased_token = hashToken(token);
@@ -177,4 +175,26 @@ export const logout = catchAsync(async (req, res) => {
     status: "success",
     message: "Logged out successfully",
   });
+});
+
+export const getMe = catchAsync(async (req, res, next) => {
+  const userId = req.user?.id;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      email: true,
+      username: true,
+      role: true,
+      createdAt: true,
+    },
+  });
+
+  if (!user) return next(createAppError("User not found", 404));
+
+  res.status(200).json({
+    status: "success",
+    data: {user}
+  })
 });
