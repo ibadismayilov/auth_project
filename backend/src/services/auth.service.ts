@@ -26,9 +26,9 @@ export const loginUser = async (loginData: any) => {
   const { email, password } = loginData;
 
   const user = await prisma.user.findUnique({ where: { email } });
-  if (!user || !(await comparePassword(user.password, password))) {
+
+  if (!user || !(await comparePassword(user.password, password)))
     throw createAppError("Email or password is incorrect", 401);
-  }
 
   if (!user.isVerified)
     throw createAppError("Please confirm your email first.", 403);
@@ -68,6 +68,7 @@ export const refreshUserToken = async (token: string) => {
       where: { userId: verify.id },
       data: { isRevoked: true },
     });
+    
     throw createAppError("Token reuse detected. All sessions revoked.", 401);
   }
 

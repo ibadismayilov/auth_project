@@ -9,11 +9,12 @@ import {
   register,
 } from "../controllers/auth.controller";
 import { protect } from "../middlewares/auth.middleware";
+import { authLimiter } from "../config/limiter.config";
 
 const route = Router();
 
-route.post("/register", validateInput(registerSchema), register);
-route.post("/login", validateInput(loginSchema), login);
+route.post("/register", authLimiter, validateInput(registerSchema), register);
+route.post("/login", authLimiter, validateInput(loginSchema), login);
 
 route.post("/refresh-token", refreshToken);
 

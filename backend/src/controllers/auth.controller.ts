@@ -1,9 +1,9 @@
 import { catchAsync } from "../utils/catch.async";
-import { cookieOptions } from "../utils/cookie.util";
 import * as AuthService from "../services/auth.service";
 import { hashToken } from "../utils/token.util";
 import { prisma } from "../lib/prisma";
 import { createAppError } from "../utils/error.util";
+import { cookieOptions } from "../config/cookie.config";
 
 //REGISTER
 export const register = catchAsync(async (req, res) => {
