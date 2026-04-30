@@ -17,7 +17,7 @@ route.post("/login", validateInput(loginSchema), login);
 
 route.post("/refresh-token", refreshToken);
 
-route.get("/me", protect, getMe);
+route.get("/get-me", protect, getMe);
 route.post("/logout", protect, logout);
 
 export default route;

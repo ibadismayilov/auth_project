@@ -6,14 +6,14 @@ import { verifyAccessToken } from "../utils/jwt.util";
 import { prisma } from "../lib/prisma";
 
 export const protect = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    let token;
+  async (req, res, next) => {
+    const authHeader = req.headers.authorization;
 
-    if (req.headers.authorization?.startsWith("Bearer"))
-      token = req.headers.authorization.split(" ")[1];
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return next(createAppError("Unauthorized", 401));
+    }
 
-    if (!token)
-      return next(createAppError("You are not logged in! Log in.", 401));
+    const token = authHeader.split(" ")[1];
 
     const verify = verifyAccessToken(token);
 

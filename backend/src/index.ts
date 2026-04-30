@@ -1,3 +1,5 @@
+import "dotenv/config"
+
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -21,7 +23,7 @@ app.use(
       else callback(new Error("Blocked by CORS"));
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );

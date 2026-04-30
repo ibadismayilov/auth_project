@@ -21,7 +21,8 @@ export const register = catchAsync(async (req, res, next) => {
     where: { email },
   });
 
-  if (existing_user) return createAppError("This user already exists.", 400);
+  if (existing_user)
+    return next(createAppError("This user already exists.", 400));
 
   const hash_password = await hashPassword(password);
 
@@ -44,16 +45,16 @@ export const register = catchAsync(async (req, res, next) => {
 });
 
 export const login = catchAsync(async (req, res, next) => {
-  const { email, password } = req.body;
+  const { username, email, password } = req.body;
 
-  if (!email || !password)
+  if (!username || !email || !password)
     return next(createAppError("Please enter email and password", 400));
 
   const user = await prisma.user.findUnique({
     where: { email },
   });
 
-  if (!user || !(await comparePassword(password, user.password))) {
+  if (!user || !(await comparePassword(user.password, password))) {
     return next(createAppError("Email or password is incorrect", 401));
   }
 
@@ -86,12 +87,12 @@ export const login = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: "success",
-    access_token,
+    accessToken: access_token,
   });
 });
 
 export const refreshToken = catchAsync(async (req, res, next) => {
-  const token = req.signedCookies.refreshToken;
+  const token = req.cookies.refreshToken;
 
   if (!token) return next(createAppError("Refresh not found", 401));
 
@@ -157,7 +158,7 @@ export const refreshToken = catchAsync(async (req, res, next) => {
 });
 
 export const logout = catchAsync(async (req, res) => {
-  const token = req.signedCookies.refreshToken;
+  const token = req.cookies.refreshToken;
 
   if (token) {
     const hased_token = hashToken(token);
@@ -195,6 +196,6 @@ export const getMe = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: "success",
-    data: {user}
-  })
+    data: { user },
+  });
 });
