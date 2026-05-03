@@ -1,0 +1,4 @@
+export const AUTH_CONFIG = {
+  REFRESH_TOKEN_EXPIRES_IN: 7 * 24 * 60 * 60 * 1000,
+  GRACE_PERIOD: 30 * 1000,
+};
