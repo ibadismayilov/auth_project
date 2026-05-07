@@ -24,6 +24,9 @@ model User {
   createdAt           DateTime  @default(now())
 
   refreshToken RefreshToken[]
+
+  @@index([email])
+  @@index([role])
 }
 
 model RefreshToken {
@@ -45,4 +48,7 @@ model RefreshToken {
   replacedBy String?
 
   @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@index([isRevoked])
 }

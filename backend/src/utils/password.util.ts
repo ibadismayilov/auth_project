@@ -8,10 +8,7 @@ export const hashPassword = async (password: string): Promise<string> => {
   });
 };
 
-export const comparePassword = async (
-  hash: string,
-  plain: string,
-): Promise<Boolean> => {
+export const comparePassword = async (hash: string, plain: string): Promise<boolean> => {
   try {
     return await argon2.verify(hash, plain);
   } catch (error) {

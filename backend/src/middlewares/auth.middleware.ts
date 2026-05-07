@@ -6,9 +6,8 @@ import { prisma } from "../lib/prisma";
 export const protect = catchAsync(async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  if (!authHeader || !authHeader.startsWith("Bearer "))
     return next(createAppError("Unauthorized", 401));
-  }
 
   const token = authHeader.split(" ")[1];
 
@@ -31,10 +30,7 @@ export const protect = catchAsync(async (req, res, next) => {
     },
   });
 
-  if (!current_user)
-    return next(
-      createAppError("The user with this token no longer exists.", 401),
-    );
+  if (!current_user) return next(createAppError("The user with this token no longer exists.", 401));
 
   req.user = current_user;
 

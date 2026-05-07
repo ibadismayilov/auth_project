@@ -1,18 +1,29 @@
 import { prisma } from "../lib/prisma";
 import { comparePassword, hashPassword } from "../utils/password.util";
-import {
-  signAccessToken,
-  signRefreshToken,
-  verifyRefreshToken,
-} from "../utils/jwt.util";
+import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../utils/jwt.util";
 import { hashToken } from "../utils/token.util";
 import { createAppError } from "../utils/error.util";
 import { AUTH_CONFIG } from "../config/auth.config";
 import { redisClient } from "../lib/redis";
 import { redisKeys } from "../utils/redisKey.util";
 
+interface RegisterInput {
+  username: string;
+  email: string;
+  password: string;
+}
+
+interface LoginInput {
+  email: string;
+  password: string;
+}
+
+interface TokenPayload {
+  id: string;
+  role?: string;
+}
 // ---------------- REGISTER ----------------
-export const registerUser = async (userData: any) => {
+export const registerUser = async (userData: RegisterInput) => {
   const { username, email, password } = userData;
 
   const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -27,7 +38,7 @@ export const registerUser = async (userData: any) => {
 };
 
 // ---------------- LOGIN ----------------
-export const loginUser = async (loginData: any) => {
+export const loginUser = async (loginData: LoginInput) => {
   const { email, password } = loginData;
 
   const user = await prisma.user.findUnique({ where: { email } });
@@ -35,8 +46,7 @@ export const loginUser = async (loginData: any) => {
   if (!user || !(await comparePassword(user.password, password)))
     throw createAppError("Email or password is incorrect", 401);
 
-  if (!user.isVerified)
-    throw createAppError("Please confirm your email first.", 403);
+  if (!user.isVerified) throw createAppError("Please confirm your email first.", 403);
 
   const accessToken = signAccessToken(user.id);
   const refreshToken = signRefreshToken(user.id);
@@ -61,7 +71,7 @@ export const loginUser = async (loginData: any) => {
       userId: user.id,
       isRevoked: false,
       createdAt: Date.now(),
-    }),
+    })
   );
 
   return { accessToken, refreshToken, user };
@@ -78,15 +88,14 @@ export const revokeAllUserSessions = async (userId: string) => {
 
 // ---------------- REFRESH ----------------
 export const refreshUserToken = async (token: string) => {
-  const verify = verifyRefreshToken(token);
+  const verify = verifyRefreshToken(token) as TokenPayload;
   const oldTokenHash = hashToken(token);
 
   const sessionKey = redisKeys.session(verify.id, oldTokenHash);
 
   const cachedSession = await redisClient.get(sessionKey);
 
-  if (!cachedSession)
-    throw createAppError("Session expired. Please login again.", 401);
+  if (!cachedSession) throw createAppError("Session expired. Please login again.", 401);
 
   const sessionData = JSON.parse(cachedSession);
 
@@ -95,8 +104,7 @@ export const refreshUserToken = async (token: string) => {
     where: { token: oldTokenHash },
   });
 
-  if (!dbToken)
-    throw createAppError("Invalid session. Please login again.", 401);
+  if (!dbToken) throw createAppError("Invalid session. Please login again.", 401);
 
   // ---------------- REUSE DETECTION ----------------
   if (sessionData.isRevoked) {
@@ -138,7 +146,7 @@ export const refreshUserToken = async (token: string) => {
       ...sessionData,
       isRevoked: true,
       revokedAt: Date.now(),
-    }),
+    })
   );
 
   // new session
@@ -149,7 +157,7 @@ export const refreshUserToken = async (token: string) => {
       userId: verify.id,
       isRevoked: false,
       createdAt: Date.now(),
-    }),
+    })
   );
 
   // DB update

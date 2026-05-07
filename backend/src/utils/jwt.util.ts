@@ -10,6 +10,10 @@ if (!JWT_SECRET || !JWT_REFRESH_SECRET) {
   throw new Error("JWT Secrets not found in .env file!");
 }
 
+interface TokenPayload extends jwt.JwtPayload {
+  id: string;
+}
+
 export const signAccessToken = (id: string): string => {
   return jwt.sign({ id }, JWT_SECRET, {
     expiresIn: JWT_EXPIRES_IN as jwt.SignOptions["expiresIn"],
@@ -22,7 +26,7 @@ export const signRefreshToken = (id: string): string => {
   });
 };
 
-export const verifyAccessToken = (token: string): any => {
+export const verifyAccessToken = (token: string): TokenPayload => {
   if (!token || token.trim() === "") {
     throw new Error("Token is empty");
   }
@@ -31,13 +35,13 @@ export const verifyAccessToken = (token: string): any => {
     throw new Error("Token malformed structure");
   }
 
-  return jwt.verify(token, JWT_SECRET);
+  return jwt.verify(token, JWT_SECRET) as TokenPayload;
 };
 
-export const verifyRefreshToken = (token: string): any => {
+export const verifyRefreshToken = (token: string): TokenPayload => {
   if (!token || token.trim() === "") {
     throw new Error("Token is empty");
   }
-  
-  return jwt.verify(token, JWT_REFRESH_SECRET);
+
+  return jwt.verify(token, JWT_REFRESH_SECRET) as TokenPayload;
 };

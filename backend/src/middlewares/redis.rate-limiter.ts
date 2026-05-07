@@ -16,9 +16,7 @@ export const userRateLimit = (limit: number, windowSec: number) => {
     if (current === 1) await redisClient.expire(key, windowSec);
 
     if (current > limit)
-      return next(
-        createAppError("Too many requests (user limit exceeded)", 429),
-      );
+      return next(createAppError("Too many requests (user limit exceeded)", 429));
 
     next();
   });

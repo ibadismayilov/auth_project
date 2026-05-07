@@ -1,11 +1,11 @@
 import { Request, Response, NextFunction } from "express";
-import { z } from "zod";
+import { z, ZodIssue } from "zod";
 
 type MiddlewareFunction = (
   req: Request,
   res: Response,
-  next: NextFunction,
-) => void | Promise<void> | any;
+  next: NextFunction
+) => void | Promise<void>;
 
 const validateInput = (schema: z.AnyZodObject): MiddlewareFunction => {
   return (req, res, next) => {
@@ -16,15 +16,17 @@ const validateInput = (schema: z.AnyZodObject): MiddlewareFunction => {
     });
 
     if (!result.success) {
-      return res.status(400).json({
+
+      res.status(400).json({
         status: "error",
         message: "Validation failed",
-        errors: result.error.issues.map((err: any) => ({
+        errors: result.error.issues.map((err: ZodIssue) => ({
           path: err.path.join("."),
           message: err.message,
           code: err.code,
         })),
       });
+      return; 
     }
 
     next();

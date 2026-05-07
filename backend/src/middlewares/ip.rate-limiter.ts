@@ -4,8 +4,7 @@ import { createAppError } from "../utils/error.util";
 
 export const ipRateLimit = (limit: number, windowSec: number) => {
   return catchAsync(async (req, _res, next) => {
-    const ip =
-      req.headers["x-forwarded-for"]?.toString() || req.socket.remoteAddress;
+    const ip = req.headers["x-forwarded-for"]?.toString() || req.socket.remoteAddress;
 
     if (!ip) return next();
 
@@ -15,9 +14,8 @@ export const ipRateLimit = (limit: number, windowSec: number) => {
 
     if (current === 1) await redisClient.expire(key, windowSec);
 
-    if (current > limit)
-      return next(createAppError("Too many requests from this IP", 429));
-    
+    if (current > limit) return next(createAppError("Too many requests from this IP", 429));
+
     next();
   });
 };

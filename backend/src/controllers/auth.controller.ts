@@ -27,8 +27,7 @@ export const refreshToken = catchAsync(async (req, res) => {
 
   if (!token) throw createAppError("No refresh token provided", 401);
 
-  const { newAccessToken, newRefreshToken } =
-    await AuthService.refreshUserToken(token);
+  const { newAccessToken, newRefreshToken } = await AuthService.refreshUserToken(token);
 
   res.cookie("refreshToken", newRefreshToken, cookieOptions);
 
@@ -46,7 +45,7 @@ export const logout = catchAsync(async (req, res) => {
     const hashedToken = hashToken(token);
 
     await prisma.refreshToken.deleteMany({
-      where: { token: hashToken(token) },
+      where: { token: hashedToken },
     });
 
     const keys = await redisClient.keys(`session:*:${hashedToken}`);
@@ -54,7 +53,9 @@ export const logout = catchAsync(async (req, res) => {
     for (const key of keys) await redisClient.del(key);
   }
 
-  const { maxAge, ...clearOption } = cookieOptions;
+  const clearOption = { ...cookieOptions };
+
+  delete (clearOption as Partial<typeof cookieOptions>).maxAge;
 
   res.clearCookie("refreshToken", clearOption);
   res.status(200).json({ status: "success", message: "Logged out" });

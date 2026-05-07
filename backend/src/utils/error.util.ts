@@ -4,10 +4,7 @@ export interface AppError extends Error {
   isOperational: boolean;
 }
 
-export const createAppError = (
-  message: string,
-  statusCode: number,
-): AppError => {
+export const createAppError = (message: string, statusCode: number): AppError => {
   const error = new Error(message) as AppError;
   error.statusCode = statusCode;
   error.status = `${statusCode}`.startsWith("4") ? "fail" : "error";

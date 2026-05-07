@@ -1,13 +1,32 @@
 import { Request, Response, NextFunction } from "express";
+import { logger } from "../lib/logger";
 
-export const globalErrorHandler = (
-  err: any,
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+interface AppError extends Error {
+  statusCode?: number;
+  status?: string;
+  isOperational?: boolean;
+  errors?: [];
+}
+
+export const globalErrorHandler = (err: AppError, req: Request, res: Response, _next: NextFunction) => {
   const statusCode = err.statusCode || 500;
   const status = err.status || "error";
+
+  // Log the error
+  if (statusCode >= 500) {
+    logger.error(`[${req.method}] ${req.path} - ${err.message}`, {
+      stack: err.stack,
+      statusCode,
+      path: req.path,
+      method: req.method,
+    });
+  } else if (statusCode >= 400) {
+    logger.warn(`[${req.method}] ${req.path} - ${err.message}`, {
+      statusCode,
+      path: req.path,
+      method: req.method,
+    });
+  }
 
   if (process.env.NODE_ENV === "development") {
     return res.status(statusCode).json({
@@ -26,7 +45,11 @@ export const globalErrorHandler = (
     });
   }
 
-  console.error("ERROR ", err);
+  logger.error("UNHANDLED ERROR:", {
+    error: err,
+    stack: err.stack,
+  });
+
   return res.status(500).json({
     status: "error",
     message: "Something went very wrong!",
