@@ -90,7 +90,7 @@ export const refreshUserToken = async (token: string) => {
 
   const sessionData = JSON.parse(cachedSession);
 
-  // 🔍 DB fallback check
+  // DB fallback check
   const dbToken = await prisma.refreshToken.findUnique({
     where: { token: oldTokenHash },
   });
@@ -111,7 +111,7 @@ export const refreshUserToken = async (token: string) => {
     if (timeSinceRevoke < AUTH_CONFIG.GRACE_PERIOD)
       throw createAppError("Processing request, please wait.", 429);
 
-    // 🚨 REAL ATTACK → logout all devices
+    // REAL ATTACK → logout all devices
     await revokeAllUserSessions(verify.id);
 
     await prisma.refreshToken.updateMany({
