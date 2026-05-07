@@ -42,6 +42,10 @@ export const loginUser = async (loginData: any) => {
   const refreshToken = signRefreshToken(user.id);
   const hashedRefreshToken = hashToken(refreshToken);
 
+  await prisma.refreshToken.deleteMany({
+    where: { userId: user.id },
+  });
+
   await prisma.refreshToken.create({
     data: {
       token: hashedRefreshToken,

@@ -17,12 +17,13 @@ import { checkIpBan } from "../middlewares/ip.ban.middleware";
 const route = Router();
 
 route.post("/register", authLimiter, validateInput(registerSchema), register);
+
 route.post(
   "/login",
-  authLimiter,
-  userRateLimit(5, 60),
-  ipRateLimit(20, 60),
   checkIpBan,
+  authLimiter,
+  ipRateLimit(20, 60),
+  userRateLimit(5, 60),
   validateInput(loginSchema),
   login,
 );
