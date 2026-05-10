@@ -1,14 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { logger } from "../lib/logger";
 
-interface AppError extends Error {
-  statusCode?: number;
-  status?: string;
-  isOperational?: boolean;
-  errors?: [];
-}
-
-export const globalErrorHandler = (err: AppError, req: Request, res: Response, _next: NextFunction) => {
+export const globalErrorHandler = (err: IAppError, req: Request, res: Response, _next: NextFunction) => {
   const statusCode = err.statusCode || 500;
   const status = err.status || "error";
 

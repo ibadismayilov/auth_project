@@ -7,23 +7,8 @@ import { AUTH_CONFIG } from "../config/auth.config";
 import { redisClient } from "../lib/redis";
 import { redisKeys } from "../utils/redisKey.util";
 
-interface RegisterInput {
-  username: string;
-  email: string;
-  password: string;
-}
-
-interface LoginInput {
-  email: string;
-  password: string;
-}
-
-interface TokenPayload {
-  id: string;
-  role?: string;
-}
 // ---------------- REGISTER ----------------
-export const registerUser = async (userData: RegisterInput) => {
+export const registerUser = async (userData: IRegisterInput) => {
   const { username, email, password } = userData;
 
   const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -38,7 +23,7 @@ export const registerUser = async (userData: RegisterInput) => {
 };
 
 // ---------------- LOGIN ----------------
-export const loginUser = async (loginData: LoginInput) => {
+export const loginUser = async (loginData: ILoginInput) => {
   const { email, password } = loginData;
 
   const user = await prisma.user.findUnique({ where: { email } });
@@ -88,7 +73,7 @@ export const revokeAllUserSessions = async (userId: string) => {
 
 // ---------------- REFRESH ----------------
 export const refreshUserToken = async (token: string) => {
-  const verify = verifyRefreshToken(token) as TokenPayload;
+  const verify = verifyRefreshToken(token) as ITokenPayload;
   const oldTokenHash = hashToken(token);
 
   const sessionKey = redisKeys.session(verify.id, oldTokenHash);

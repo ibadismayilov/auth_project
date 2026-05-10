@@ -1,12 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { z, ZodIssue } from "zod";
 
-type MiddlewareFunction = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => void | Promise<void>;
-
 const validateInput = (schema: z.AnyZodObject): MiddlewareFunction => {
   return (req, res, next) => {
     const result = schema.safeParse({
