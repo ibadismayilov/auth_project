@@ -11,3 +11,4 @@ package-lock.json
 .git
 prisma/generated
 generated
+logs
