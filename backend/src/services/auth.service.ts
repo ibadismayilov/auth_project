@@ -11,8 +11,8 @@ import { sendUserEmail } from "../lib/resend";
 import { getVerificationEmailTemplate } from "../utils/email.templates.util";
 
 // ---------------- REGISTER ----------------
-export const registerUser = async (userData: IRegisterInput) => {
-  const { username, email, password } = userData;
+export const registerUser = async (userData: IRegisterInput & { ipAddress: string }) => {
+  const { username, email, password, ipAddress } = userData;
 
   const existingUser = await prisma.user.findUnique({ where: { email } });
   if (existingUser && existingUser.isVerified === true)
@@ -38,6 +38,7 @@ export const registerUser = async (userData: IRegisterInput) => {
       data: {
         username,
         password: hashedPassword,
+        ipAddress: ipAddress,
       },
     });
   } else {
@@ -47,6 +48,7 @@ export const registerUser = async (userData: IRegisterInput) => {
         email,
         password: hashedPassword,
         isVerified: false,
+        ipAddress: ipAddress,
       },
     });
   }
@@ -213,7 +215,7 @@ export const refreshUserToken = async (token: string) => {
   return { newAccessToken, newRefreshToken };
 };
 
-// ---------------- GET USER ----------------
+//Get User
 export const getUserById = async (userId: string) => {
   const user = await prisma.user.findUnique({
     where: { id: userId },

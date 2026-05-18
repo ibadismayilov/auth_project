@@ -58,3 +58,19 @@
 2026-05-18 18:50:38 [DEBUG]: [POST] /refresh-token - Status: 200 - Duration: 76ms
 2026-05-18 18:50:43 [HTTP]: [POST] /api/auth/refresh-token - IP: ::1
 2026-05-18 18:50:43 [DEBUG]: [POST] /refresh-token - Status: 200 - Duration: 50ms
+2026-05-18 19:20:32 [HTTP]: [POST] /api/auth/register - IP: ::1
+2026-05-18 19:20:32 [WARN]: [POST] /register - Status: 400 - Duration: 247ms
+2026-05-18 19:20:39 [HTTP]: [POST] /api/auth/register - IP: ::1
+2026-05-18 19:20:39 [WARN]: [POST] /register - Status: 400 - Duration: 6ms
+2026-05-18 19:20:51 [HTTP]: [POST] /api/auth/register - IP: ::1
+2026-05-18 19:20:52 [DEBUG]: [POST] /register - Status: 201 - Duration: 1777ms
+2026-05-18 19:25:22 [HTTP]: [POST] /api/auth/register - IP: ::1
+2026-05-18 19:25:24 [DEBUG]: [POST] /register - Status: 201 - Duration: 2144ms
+2026-05-18 19:27:58 [HTTP]: [POST] /api/auth/register - IP: ::1
+2026-05-18 19:27:59 [DEBUG]: [POST] /register - Status: 201 - Duration: 1683ms
+2026-05-18 19:29:05 [HTTP]: [POST] /api/auth/register - IP: ::1
+2026-05-18 19:29:07 [DEBUG]: [POST] /register - Status: 201 - Duration: 1353ms
+2026-05-18 19:31:52 [HTTP]: [POST] /api/auth/register - IP: ::1
+2026-05-18 19:31:53 [DEBUG]: [POST] /register - Status: 201 - Duration: 1672ms
+2026-05-18 19:33:44 [HTTP]: [POST] /api/auth/register - IP: ::1
+2026-05-18 19:33:46 [DEBUG]: [POST] /register - Status: 201 - Duration: 1875ms

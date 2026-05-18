@@ -1,10 +1,6 @@
 import rateLimit from "express-rate-limit";
 import { Request, Response } from "express";
-
-const getSafeIp = (req: Request): string => {
-  const ip = req.ip || req.socket.remoteAddress || "unknown";
-  return ip.replace(/^.*:/, "");
-};
+import { getSafeIp } from "../utils/ip.util";
 
 export const commonLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,

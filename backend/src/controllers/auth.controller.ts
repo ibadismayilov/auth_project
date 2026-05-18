@@ -5,10 +5,13 @@ import { prisma } from "../lib/prisma";
 import { createAppError } from "../utils/error.util";
 import { cookieOptions } from "../config/cookie.config";
 import { redisClient } from "../lib/redis";
+import { getSafeIp } from "../utils/ip.util";
 
 //REGISTER
 export const register = catchAsync(async (req, res) => {
-  const user = await AuthService.registerUser(req.body);
+  const ipAddress = getSafeIp(req);
+
+  const user = await AuthService.registerUser({ ...req.body, ipAddress: ipAddress });
 
   res.status(201).json({
     status: "success",

@@ -22,6 +22,7 @@ model User {
   verificationCode    String?
   verificationExpires DateTime?
   createdAt           DateTime  @default(now())
+  ipAddress           String?
 
   refreshToken RefreshToken[]
 
