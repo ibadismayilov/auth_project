@@ -1,10 +1,17 @@
 import { Router } from "express";
 import validateInput from "../middlewares/validate.middleware";
 import { loginSchema, registerSchema, verifyOtpSchema } from "../validators/auth.validator";
-import { getMe, login, logout, refreshToken, register, verifyOTP } from "../controllers/auth.controller";
+import {
+  getMe,
+  login,
+  logout,
+  refreshToken,
+  register,
+  verifyOTP,
+} from "../controllers/auth.controller";
 import { protect } from "../middlewares/auth.middleware";
 import { authLimiter } from "../config/limiter.config";
-import { userRateLimit } from "../middlewares/redis.rate-limiter";
+import { progressiveRateLimit } from "../middlewares/redis.rate-limiter";
 import { ipRateLimit } from "../middlewares/ip.rate-limiter";
 import { checkIpBan } from "../middlewares/ip.ban.middleware";
 
@@ -16,24 +23,31 @@ route.post(
   "/login",
   checkIpBan,
   authLimiter,
-  ipRateLimit(20, 60),
-  userRateLimit(5, 60),
   validateInput(loginSchema),
+  ipRateLimit(20, 60),
+  progressiveRateLimit(5, 60),
   login
 );
 
-route.post("/refresh-token", userRateLimit(20, 60), ipRateLimit(30, 60), checkIpBan, refreshToken);
-
-route.get("/get-me", protect, checkIpBan, userRateLimit(50, 60), getMe);
-route.post("/logout", protect, logout);
+route.post(
+  "/refresh-token",
+  checkIpBan,
+  ipRateLimit(30, 60),
+  progressiveRateLimit(20, 60),
+  refreshToken
+);
 
 route.post(
-  "/verify-otp", 
-  checkIpBan, 
-  authLimiter, 
-  ipRateLimit(10, 60), 
-  validateInput(verifyOtpSchema), 
+  "/verify-otp",
+  checkIpBan,
+  authLimiter,
+  validateInput(verifyOtpSchema),
+  ipRateLimit(10, 60),
+  progressiveRateLimit(5, 60),
   verifyOTP
 );
+
+route.get("/get-me", protect, checkIpBan, progressiveRateLimit(50, 60), getMe);
+route.post("/logout", protect, logout);
 
 export default route;

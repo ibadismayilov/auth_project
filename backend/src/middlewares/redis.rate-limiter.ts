@@ -1,22 +1,54 @@
+import { Request, Response, NextFunction } from "express";
 import { redisClient } from "../lib/redis";
-import { redisKeys } from "../utils/redisKey.util";
 import { createAppError } from "../utils/error.util";
 import { catchAsync } from "../utils/catch.async";
 
-export const userRateLimit = (limit: number, windowSec: number) => {
-  return catchAsync(async (req, _res, next) => {
-    const userId = req.user?.id;
+const PENALTY_TIMES = [60, 300, 900, 3600];
 
-    if (!userId) return next();
+export const progressiveRateLimit = (maxRequests: number, windowSeconds: number) => {
+  return catchAsync(async (req: Request, _res: Response, next: NextFunction) => {
+    const identifier = req.user?.id || req.ip || "unknown";
 
-    const key = redisKeys.idRateLimit(userId);
+    const requestKey = `rate:req:${identifier}`;
+    const violationKey = `rate:viol:${identifier}`;
+    const banKey = `rate:ban:${identifier}`;
 
-    const current = await redisClient.incr(key);
+    const isBanned = await redisClient.get(banKey);
+    if (isBanned) {
+      const ttl = await redisClient.ttl(banKey);
+      const minutesLeft = Math.ceil(ttl / 60);
+      return next(
+        createAppError(
+          `Too many requests. You are temporarily blocked. Please try again in ${minutesLeft} minute(s).`,
+          429
+        )
+      );
+    }
 
-    if (current === 1) await redisClient.expire(key, windowSec);
+    const currentRequests = await redisClient.incr(requestKey);
 
-    if (current > limit)
-      return next(createAppError("Too many requests (user limit exceeded)", 429));
+    if (currentRequests === 1) await redisClient.expire(requestKey, windowSeconds);
+
+    if (currentRequests > maxRequests) {
+      const violations = await redisClient.incr(violationKey);
+
+      const penaltyIndex = Math.min(violations - 1, PENALTY_TIMES.length - 1);
+      const banDuration = PENALTY_TIMES[penaltyIndex];
+
+      await redisClient.set(banKey, "true", { EX: banDuration });
+
+      await redisClient.expire(violationKey, 86400);
+
+      await redisClient.del(requestKey);
+
+      const minutesLeft = Math.ceil(banDuration / 60);
+      return next(
+        createAppError(
+          `Rate limit exceeded. You have been restricted for ${minutesLeft} minute(s).`,
+          429
+        )
+      );
+    }
 
     next();
   });
