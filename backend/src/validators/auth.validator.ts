@@ -62,3 +62,10 @@ export const changePasswordSchema = z.object({
       path: ["confirmPassword"],
     }),
 });
+
+export const verifyOtpSchema = z.object({
+  body: z.object({
+    email: z.string().email("Düzgün email daxil edin"),
+    code: z.string().length(6, "OTP kodu tam 6 simvoldan ibarət olmalıdır"), // generateOTP() neçə rəqəmlidirsə ona uyğun
+  }),
+});

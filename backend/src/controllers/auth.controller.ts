@@ -10,7 +10,11 @@ import { redisClient } from "../lib/redis";
 export const register = catchAsync(async (req, res) => {
   const user = await AuthService.registerUser(req.body);
 
-  res.status(201).json({ status: "success", data: { user } });
+  res.status(201).json({
+    status: "success",
+    message: "Registration successful. Please check your email for the verification code.",
+    data: { user },
+  });
 });
 
 //LOGIN
@@ -72,5 +76,21 @@ export const getMe = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     data: { user },
+  });
+});
+
+//Verify OTP
+export const verifyOTP = catchAsync(async (req, res) => {
+  const { user, accessToken, refreshToken } = await AuthService.verifyUserOTP(req.body);
+
+  res.cookie("refreshToken", refreshToken, cookieOptions);
+
+  res.status(200).json({
+    status: "success",
+    message: "Email verified successfully. Welcome to your account!",
+    data: {
+      user,
+      accessToken,
+    },
   });
 });

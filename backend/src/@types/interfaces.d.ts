@@ -1,5 +1,6 @@
 import { Role } from "@prisma/client";
 import { JwtPayload } from "jsonwebtoken";
+import { CreateEmailResponse } from "resend";
 
 declare global {
   interface IAppError extends Error {
@@ -22,7 +23,24 @@ declare global {
 
   interface ITokenPayload extends JwtPayload {
     id: string;
-    role?: Role
+    role?: Role;
+  }
+
+  interface IEmailResponse {
+    success: boolean;
+    data?: CreateEmailResponse["data"];
+    error?: CreateEmailResponse["error"];
+  }
+
+  interface IEmailFormat {
+    userEmail: string;
+    subject: string;
+    htmlContent: string;
+  }
+  
+  interface IVerifyInput {
+    email: string,
+    code: string
   }
 }
 

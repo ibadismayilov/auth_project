@@ -1,0 +1,60 @@
+2026-05-18 17:37:59 [HTTP]: [POST] /api/auth/register - IP: ::1
+2026-05-18 17:38:01 [DEBUG]: [POST] /register - Status: 201 - Duration: 2034ms
+2026-05-18 17:38:17 [HTTP]: [POST] /api/auth/register - IP: ::1
+2026-05-18 17:38:18 [DEBUG]: [POST] /register - Status: 201 - Duration: 1154ms
+2026-05-18 17:39:36 [HTTP]: [POST] /api/auth/register - IP: ::1
+2026-05-18 17:39:38 [DEBUG]: [POST] /register - Status: 201 - Duration: 1530ms
+2026-05-18 17:44:27 [HTTP]: [POST] /api/auth/register - IP: ::1
+2026-05-18 17:44:29 [DEBUG]: [POST] /register - Status: 201 - Duration: 1567ms
+2026-05-18 17:46:19 [HTTP]: [POST] /api/auth/register - IP: ::1
+2026-05-18 17:46:19 [WARN]: [POST] /register - Status: 400 - Duration: 101ms
+2026-05-18 17:46:29 [HTTP]: [POST] /api/auth/register - IP: ::1
+2026-05-18 17:46:29 [WARN]: [POST] /register - Status: 400 - Duration: 25ms
+2026-05-18 17:46:51 [HTTP]: [GET] /api/auth/verify-top - IP: ::1
+2026-05-18 17:47:02 [HTTP]: [GET] /api/auth/verify-otp - IP: ::1
+2026-05-18 17:47:22 [HTTP]: [GET] /api/auth/verify-otp - IP: ::1
+2026-05-18 17:48:41 [HTTP]: [POST] /api/auth/verify-otp - IP: ::1
+2026-05-18 17:48:41 [DEBUG]: [POST] /verify-otp - Status: 200 - Duration: 526ms
+2026-05-18 17:49:18 [HTTP]: [POST] /api/auth/verify-otp - IP: ::1
+2026-05-18 17:49:18 [WARN]: [POST] /api/auth/verify-otp - Verification code has expired or does not exist.
+2026-05-18 17:49:18 [WARN]: [POST] /api/auth/verify-otp - Status: 400 - Duration: 96ms
+2026-05-18 17:51:40 [HTTP]: [POST] /api/auth/login - IP: ::1
+2026-05-18 17:51:40 [WARN]: [POST] /login - Status: 400 - Duration: 54ms
+2026-05-18 17:51:49 [HTTP]: [POST] /api/auth/login - IP: ::1
+2026-05-18 17:51:49 [WARN]: [POST] /login - Status: 400 - Duration: 5ms
+2026-05-18 17:52:16 [HTTP]: [POST] /api/auth/login - IP: ::1
+2026-05-18 17:52:17 [DEBUG]: [POST] /login - Status: 200 - Duration: 590ms
+2026-05-18 17:53:12 [HTTP]: [POST] /api/auth/logout - IP: ::1
+2026-05-18 17:53:12 [WARN]: [POST] /api/auth/logout - Invalid or expired token
+2026-05-18 17:53:12 [WARN]: [POST] /api/auth/logout - Status: 401 - Duration: 81ms
+2026-05-18 17:53:27 [HTTP]: [POST] /api/auth/login - IP: ::1
+2026-05-18 17:53:27 [DEBUG]: [POST] /login - Status: 200 - Duration: 437ms
+2026-05-18 17:53:31 [HTTP]: [POST] /api/auth/login - IP: ::1
+2026-05-18 17:53:31 [DEBUG]: [POST] /login - Status: 200 - Duration: 233ms
+2026-05-18 17:53:41 [HTTP]: [POST] /api/auth/logout - IP: ::1
+2026-05-18 17:53:41 [DEBUG]: [POST] /logout - Status: 200 - Duration: 95ms
+2026-05-18 17:53:49 [HTTP]: [POST] /api/auth/login - IP: ::1
+2026-05-18 17:53:49 [WARN]: [POST] /login - Status: 429 - Duration: 29ms
+2026-05-18 17:54:20 [HTTP]: [POST] /api/auth/login - IP: ::1
+2026-05-18 17:54:20 [WARN]: [POST] /login - Status: 429 - Duration: 9ms
+2026-05-18 17:54:45 [HTTP]: [POST] /api/auth/refresh-token - IP: ::1
+2026-05-18 17:54:45 [WARN]: [POST] /api/auth/refresh-token - No refresh token provided
+2026-05-18 17:54:45 [WARN]: [POST] /api/auth/refresh-token - Status: 401 - Duration: 37ms
+2026-05-18 17:55:00 [HTTP]: [POST] /api/auth/refresh-token - IP: ::1
+2026-05-18 17:55:00 [WARN]: [POST] /api/auth/refresh-token - No refresh token provided
+2026-05-18 17:55:00 [WARN]: [POST] /api/auth/refresh-token - Status: 401 - Duration: 17ms
+2026-05-18 17:55:33 [HTTP]: [POST] /api/auth/login - IP: ::1
+2026-05-18 17:55:33 [WARN]: [POST] /login - Status: 429 - Duration: 15ms
+2026-05-18 18:14:43 [HTTP]: [POST] /api/auth/login - IP: ::1
+2026-05-18 18:14:43 [WARN]: [POST] /api/auth/login - Email or password is incorrect
+2026-05-18 18:14:43 [WARN]: [POST] /api/auth/login - Status: 401 - Duration: 204ms
+2026-05-18 18:14:50 [HTTP]: [POST] /api/auth/login - IP: ::1
+2026-05-18 18:14:50 [WARN]: [POST] /login - Status: 429 - Duration: 6ms
+2026-05-18 18:50:22 [HTTP]: [POST] /api/auth/login - IP: ::1
+2026-05-18 18:50:22 [DEBUG]: [POST] /login - Status: 200 - Duration: 518ms
+2026-05-18 18:50:33 [HTTP]: [POST] /api/auth/refresh-token - IP: ::1
+2026-05-18 18:50:33 [DEBUG]: [POST] /refresh-token - Status: 200 - Duration: 164ms
+2026-05-18 18:50:38 [HTTP]: [POST] /api/auth/refresh-token - IP: ::1
+2026-05-18 18:50:38 [DEBUG]: [POST] /refresh-token - Status: 200 - Duration: 76ms
+2026-05-18 18:50:43 [HTTP]: [POST] /api/auth/refresh-token - IP: ::1
+2026-05-18 18:50:43 [DEBUG]: [POST] /refresh-token - Status: 200 - Duration: 50ms

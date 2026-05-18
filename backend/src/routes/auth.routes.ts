@@ -1,7 +1,7 @@
 import { Router } from "express";
 import validateInput from "../middlewares/validate.middleware";
-import { loginSchema, registerSchema } from "../validators/auth.validator";
-import { getMe, login, logout, refreshToken, register } from "../controllers/auth.controller";
+import { loginSchema, registerSchema, verifyOtpSchema } from "../validators/auth.validator";
+import { getMe, login, logout, refreshToken, register, verifyOTP } from "../controllers/auth.controller";
 import { protect } from "../middlewares/auth.middleware";
 import { authLimiter } from "../config/limiter.config";
 import { userRateLimit } from "../middlewares/redis.rate-limiter";
@@ -26,5 +26,14 @@ route.post("/refresh-token", userRateLimit(20, 60), ipRateLimit(30, 60), checkIp
 
 route.get("/get-me", protect, checkIpBan, userRateLimit(50, 60), getMe);
 route.post("/logout", protect, logout);
+
+route.post(
+  "/verify-otp", 
+  checkIpBan, 
+  authLimiter, 
+  ipRateLimit(10, 60), 
+  validateInput(verifyOtpSchema), 
+  verifyOTP
+);
 
 export default route;

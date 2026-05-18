@@ -3,7 +3,9 @@ export const redisKeys = {
 
   otp: (email: string) => `otp:${email}`,
 
-  rateLimit: (userId: string) => `rate:${userId}`,
+  idRateLimit: (userId: string) => `idRate:${userId}`,
+  
+  emailRateLimit: (email: string) => `emailRate:${email}`,
 
   blacklist: (tokenHash: string) => `auth:blacklist:${tokenHash}`,
-};
+} as const;

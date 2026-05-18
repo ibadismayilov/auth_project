@@ -6,20 +6,68 @@ import { createAppError } from "../utils/error.util";
 import { AUTH_CONFIG } from "../config/auth.config";
 import { redisClient } from "../lib/redis";
 import { redisKeys } from "../utils/redisKey.util";
+import { generateOTP } from "../utils/otp.util";
+import { sendUserEmail } from "../lib/resend";
+import { getVerificationEmailTemplate } from "../utils/email.templates.util";
 
 // ---------------- REGISTER ----------------
 export const registerUser = async (userData: IRegisterInput) => {
   const { username, email, password } = userData;
 
   const existingUser = await prisma.user.findUnique({ where: { email } });
-  if (existingUser) throw createAppError("This user already exists.", 400);
+  if (existingUser && existingUser.isVerified === true)
+    throw createAppError("This user already exists.", 400);
 
+  const rateKey = redisKeys.emailRateLimit(email);
+  const isRateLimited = await redisClient.get(rateKey);
+
+  if (isRateLimited)
+    throw createAppError(
+      "Too many requests. Please wait 1 minute before requesting a new OTP.",
+      429
+    );
+
+  const code = generateOTP();
   const hashedPassword = await hashPassword(password);
 
-  return prisma.user.create({
-    data: { username, email, password: hashedPassword },
-    omit: { password: true },
+  let user;
+
+  if (existingUser && existingUser.isVerified === false) {
+    user = await prisma.user.update({
+      where: { email },
+      data: {
+        username,
+        password: hashedPassword,
+      },
+    });
+  } else {
+    user = await prisma.user.create({
+      data: {
+        username,
+        email,
+        password: hashedPassword,
+        isVerified: false,
+      },
+    });
+  }
+
+  const otpKey = redisKeys.otp(email);
+
+  await redisClient.set(rateKey, "true", {
+    EX: 60,
   });
+
+  await redisClient.set(otpKey, code, {
+    EX: 300,
+  });
+
+  await sendUserEmail({
+    userEmail: email,
+    subject: "Your Verification Code",
+    htmlContent: getVerificationEmailTemplate(username, code),
+  });
+
+  return user;
 };
 
 // ---------------- LOGIN ----------------
@@ -77,7 +125,6 @@ export const refreshUserToken = async (token: string) => {
   const oldTokenHash = hashToken(token);
 
   const sessionKey = redisKeys.session(verify.id, oldTokenHash);
-
   const cachedSession = await redisClient.get(sessionKey);
 
   if (!cachedSession) throw createAppError("Session expired. Please login again.", 401);
@@ -155,6 +202,14 @@ export const refreshUserToken = async (token: string) => {
     },
   });
 
+  await prisma.refreshToken.create({
+    data: {
+      token: newTokenHash,
+      userId: verify.id,
+      expiresAt: new Date(Date.now() + AUTH_CONFIG.REFRESH_TOKEN_EXPIRES_IN),
+    },
+  });
+
   return { newAccessToken, newRefreshToken };
 };
 
@@ -174,4 +229,47 @@ export const getUserById = async (userId: string) => {
   if (!user) throw createAppError("User not found", 404);
 
   return user;
+};
+
+export const verifyUserOTP = async (verifyData: IVerifyInput) => {
+  const { email, code } = verifyData;
+
+  const otpKey = redisKeys.otp(email);
+  const cachedCode = await redisClient.get(otpKey);
+
+  if (!cachedCode) throw createAppError("Verification code has expired or does not exist.", 400);
+
+  if (cachedCode !== code) throw createAppError("Invalid verification code.", 400);
+
+  const user = await prisma.user.update({
+    where: { email },
+    data: { isVerified: true },
+    omit: { password: true },
+  });
+
+  await redisClient.del(otpKey);
+
+  const refreshToken = signRefreshToken(user.id);
+  const accessToken = signAccessToken(user.id);
+  const hashedRefreshToken = hashToken(refreshToken);
+
+  await prisma.refreshToken.create({
+    data: {
+      token: hashedRefreshToken,
+      userId: user.id,
+      expiresAt: new Date(Date.now() + AUTH_CONFIG.REFRESH_TOKEN_EXPIRES_IN),
+    },
+  });
+
+  await redisClient.setEx(
+    redisKeys.session(user.id, hashedRefreshToken),
+    Math.floor(AUTH_CONFIG.REFRESH_TOKEN_EXPIRES_IN / 1000),
+    JSON.stringify({
+      userId: user.id,
+      isRevoked: false,
+      createdAt: Date.now(),
+    })
+  );
+
+  return { user, accessToken, refreshToken };
 };

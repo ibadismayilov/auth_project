@@ -9,7 +9,7 @@ export const userRateLimit = (limit: number, windowSec: number) => {
 
     if (!userId) return next();
 
-    const key = redisKeys.rateLimit(userId);
+    const key = redisKeys.idRateLimit(userId);
 
     const current = await redisClient.incr(key);
 
